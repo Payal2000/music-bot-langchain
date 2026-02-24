@@ -38,7 +38,6 @@ export function getSpotifyAuthUrl(
     ].join(' '),
     code_challenge_method: 'S256',
     code_challenge: codeChallenge,
-    show_dialog: 'true',
   })
   return `https://accounts.spotify.com/authorize?${params}`
 }

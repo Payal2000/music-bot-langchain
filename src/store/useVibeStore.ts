@@ -14,8 +14,6 @@ interface VibeState {
   setCurrentTracks: (tracks: SpotifyTrack[]) => void
   setLoadingTracks: (loading: boolean) => void
   advanceTrack: () => void
-  prevTrack: () => void
-  nextTrack: () => void
   likeTrack: () => void
   dislikeTrack: () => void
   undoLast: () => void
@@ -43,12 +41,6 @@ export const useVibeStore = create<VibeState>()(
 
       advanceTrack: () =>
         set((s) => ({ currentTrackIndex: Math.min(s.currentTrackIndex + 1, s.currentTracks.length) })),
-
-      prevTrack: () =>
-        set((s) => ({ currentTrackIndex: Math.max(0, s.currentTrackIndex - 1) })),
-
-      nextTrack: () =>
-        set((s) => ({ currentTrackIndex: Math.min(s.currentTrackIndex + 1, s.currentTracks.length - 1) })),
 
       likeTrack: () => {
         const { currentTracks, currentTrackIndex, currentArtist, advanceTrack } = get()

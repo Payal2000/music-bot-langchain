@@ -1,16 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore'
 
-export interface SpotifyDevice {
-  id: string
-  name: string
-  type: string
-  is_active: boolean
-}
-
 export interface PlayerState {
-  devices: SpotifyDevice[]
-  activeDeviceId: string | null
+  deviceId: string | null
   isReady: boolean
   isPaused: boolean
   currentTrackId: string | null
@@ -25,23 +17,35 @@ export interface SpotifyPlayerHook extends PlayerState {
   play: (spotifyUri: string) => Promise<void>
   togglePlay: () => void
   seek: (ms: number) => void
-  previousTrack: () => void
-  nextTrack: () => void
-  selectDevice: (deviceId: string) => void
-  refreshDevices: () => Promise<void>
 }
 
-const BASE = 'https://api.spotify.com/v1'
+declare global {
+  interface Window {
+    onSpotifyWebPlaybackSDKReady: () => void
+    Spotify: {
+      Player: new (config: {
+        name: string
+        getOAuthToken: (cb: (token: string) => void) => void
+        volume: number
+      }) => SpotifyPlayer
+    }
+  }
+}
+
+interface SpotifyPlayer {
+  connect: () => Promise<boolean>
+  disconnect: () => void
+  togglePlay: () => Promise<void>
+  seek: (ms: number) => Promise<void>
+  addListener: (event: string, cb: (data: unknown) => void) => void
+  removeListener: (event: string) => void
+}
 
 export function useSpotifyPlayer(): SpotifyPlayerHook {
   const { getValidToken } = useAuthStore()
-  const playerRef = useRef<Spotify.Player | null>(null)
-  const deviceIdRef = useRef<string | null>(null)
-  const positionTimerRef = useRef<ReturnType<typeof setInterval>>()
-
+  const playerRef = useRef<SpotifyPlayer | null>(null)
   const [state, setState] = useState<PlayerState>({
-    devices: [],
-    activeDeviceId: null,
+    deviceId: null,
     isReady: false,
     isPaused: true,
     currentTrackId: null,
@@ -53,55 +57,58 @@ export function useSpotifyPlayer(): SpotifyPlayerHook {
   })
 
   useEffect(() => {
-    let player: Spotify.Player
+    let active = true
 
     function initPlayer() {
-      getValidToken().then((token) => {
-        if (!token) return
-
-        player = new window.Spotify.Player({
-          name: 'MyVibe Player',
-          getOAuthToken: async (cb) => {
-            const t = await getValidToken()
-            if (t) cb(t)
-          },
-          volume: 0.8,
-        })
-
-        player.addListener('ready', ({ device_id }) => {
-          deviceIdRef.current = device_id
-          setState((s) => ({ ...s, isReady: true, activeDeviceId: device_id }))
-        })
-
-        player.addListener('not_ready', () => {
-          setState((s) => ({ ...s, isReady: false }))
-        })
-
-        player.addListener('player_state_changed', (ps) => {
-          if (!ps) return
-          const track = ps.track_window?.current_track
-          setState((s) => ({
-            ...s,
-            isPaused: ps.paused,
-            positionMs: ps.position,
-            durationMs: ps.duration,
-            currentTrackId: track?.id ?? null,
-            currentTrackName: track?.name ?? null,
-            currentTrackArtist: track?.artists?.[0]?.name ?? null,
-            currentTrackImage: track?.album?.images?.[0]?.url ?? null,
-          }))
-        })
-
-        player.addListener('initialization_error', ({ message }) => console.error('Init error:', message))
-        player.addListener('authentication_error', ({ message }) => console.error('Auth error:', message))
-        player.addListener('account_error', ({ message }) => {
-          console.error('Account error:', message)
-          alert('Spotify Premium is required for playback.')
-        })
-
-        player.connect()
-        playerRef.current = player
+      if (!active) return
+      const player = new window.Spotify.Player({
+        name: 'MyVibe Player',
+        getOAuthToken: async (cb) => {
+          const token = await getValidToken()
+          if (token) cb(token)
+        },
+        volume: 0.7,
       })
+
+      player.addListener('ready', (data) => {
+        const { device_id } = data as { device_id: string }
+        setState((s) => ({ ...s, deviceId: device_id, isReady: true }))
+      })
+
+      player.addListener('not_ready', () => {
+        setState((s) => ({ ...s, isReady: false }))
+      })
+
+      player.addListener('player_state_changed', (data) => {
+        if (!data) return
+        const ps = data as {
+          paused: boolean
+          position: number
+          duration: number
+          track_window: {
+            current_track: {
+              id: string
+              name: string
+              artists: Array<{ name: string }>
+              album: { images: Array<{ url: string }> }
+            }
+          }
+        }
+        const track = ps.track_window.current_track
+        setState((s) => ({
+          ...s,
+          isPaused: ps.paused,
+          positionMs: ps.position,
+          durationMs: ps.duration,
+          currentTrackId: track.id,
+          currentTrackName: track.name,
+          currentTrackArtist: track.artists[0]?.name ?? '',
+          currentTrackImage: track.album.images[0]?.url ?? null,
+        }))
+      })
+
+      player.connect()
+      playerRef.current = player
     }
 
     if (window.Spotify) {
@@ -110,46 +117,36 @@ export function useSpotifyPlayer(): SpotifyPlayerHook {
       window.onSpotifyWebPlaybackSDKReady = initPlayer
     }
 
-    // Tick position forward every second when playing
-    positionTimerRef.current = setInterval(() => {
-      setState((s) => {
-        if (!s.isPaused && s.positionMs < s.durationMs) {
-          return { ...s, positionMs: Math.min(s.positionMs + 1000, s.durationMs) }
-        }
-        return s
-      })
-    }, 1000)
-
     return () => {
-      clearInterval(positionTimerRef.current)
+      active = false
       playerRef.current?.disconnect()
+      playerRef.current = null
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function apiCall(endpoint: string, method = 'PUT', body?: object) {
-    const token = await getValidToken()
-    if (!token) return
-    const res = await fetch(`${BASE}${endpoint}`, {
-      method,
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    if (!res.ok && res.status !== 204) {
-      const err = await res.json().catch(() => ({}))
-      console.error('Spotify API error', res.status, err)
-      if (res.status === 403) alert('Playback failed: Spotify Premium is required.')
-      else if (res.status === 404) alert('No active Spotify device found. Open Spotify on your phone or desktop first.')
-      else if (res.status === 401) alert('Session expired. Please log out and back in.')
-    }
-  }
+  }, [getValidToken])
 
   async function play(spotifyUri: string) {
-    const deviceId = deviceIdRef.current
+    const { deviceId } = state
     if (!deviceId) {
       alert('Player not ready yet. Wait a moment and try again.')
       return
     }
-    await apiCall(`/me/player/play?device_id=${deviceId}`, 'PUT', { uris: [spotifyUri] })
+    const token = await getValidToken()
+    if (!token) return
+    const res = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ uris: [spotifyUri] }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      console.error('Spotify play error:', res.status, err)
+      if (res.status === 403) alert('Playback failed: Make sure you have Spotify Premium.')
+      else if (res.status === 401) alert('Session expired. Please log out and log back in.')
+      else alert(`Playback error ${res.status}. Check the browser console for details.`)
+    }
   }
 
   function togglePlay() {
@@ -157,33 +154,8 @@ export function useSpotifyPlayer(): SpotifyPlayerHook {
   }
 
   function seek(ms: number) {
-    playerRef.current?.seek(Math.floor(ms))
+    playerRef.current?.seek(ms)
   }
 
-  function previousTrack() {
-    playerRef.current?.previousTrack()
-  }
-
-  function nextTrack() {
-    playerRef.current?.nextTrack()
-  }
-
-  function selectDevice(_deviceId: string) {
-    // SDK manages its own device; no-op for external devices
-  }
-
-  async function refreshDevices() {
-    // Not needed for SDK — the SDK registers itself as a device automatically
-  }
-
-  return {
-    ...state,
-    play,
-    togglePlay,
-    seek,
-    previousTrack,
-    nextTrack,
-    selectDevice,
-    refreshDevices,
-  }
+  return { ...state, play, togglePlay, seek }
 }

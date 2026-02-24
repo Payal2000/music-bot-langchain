@@ -1,4 +1,4 @@
-import type { SpotifyArtist, SpotifyTrack } from '../types/spotify'
+import type { SpotifyArtist, SpotifySearchResult, SpotifyTrack } from '../types/spotify'
 
 const BASE = 'https://api.spotify.com/v1'
 
@@ -17,27 +17,17 @@ async function spotifyFetch<T>(
   return res.json()
 }
 
-export interface CombinedSearchResult {
-  artists: SpotifyArtist[]
-  tracks: SpotifyTrack[]
-}
-
-export async function searchAll(
+export async function searchArtists(
   query: string,
-  token: string
-): Promise<CombinedSearchResult> {
-  const data = await spotifyFetch<{
-    artists: { items: SpotifyArtist[] }
-    tracks: { items: SpotifyTrack[] }
-  }>('/search', token, {
+  token: string,
+  limit = 6
+): Promise<SpotifyArtist[]> {
+  const data = await spotifyFetch<SpotifySearchResult>('/search', token, {
     q: query,
-    type: 'artist,track',
-    limit: '5',
+    type: 'artist',
+    limit: String(limit),
   })
-  return {
-    artists: data.artists.items.filter((a) => a.images.length > 0).slice(0, 4),
-    tracks: data.tracks.items.filter((t) => t.album.images.length > 0).slice(0, 5),
-  }
+  return data.artists.items
 }
 
 export async function getArtistTopTracks(

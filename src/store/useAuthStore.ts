@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import { refreshAccessToken } from '../lib/pkce'
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID as string
-export const REDIRECT_URI = 'http://localhost:5173/callback'
+export const REDIRECT_URI = 'http://127.0.0.1:5173/callback'
 
 interface AuthState {
   accessToken: string | null
