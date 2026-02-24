@@ -1,13 +1,6 @@
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  RadialBarChart, RadialBar,
 } from 'recharts'
 import { Heart, X, Music2, TrendingUp, Play } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -17,27 +10,12 @@ import { useAuthStore } from '../store/useAuthStore'
 import { getArtistTopTracks } from '../lib/spotify'
 import type { SpotifyArtist } from '../types/spotify'
 
-const COLORS = ['#C8A876', '#E8833A', '#E84A6F', '#3ABFBF', '#8B5CF6', '#06B6D4', '#F59E0B', '#10B981']
+const GENRE_COLORS = ['#C8A876', '#E8833A', '#E84A6F', '#3ABFBF', '#8B5CF6', '#06B6D4', '#F59E0B', '#10B981']
 
-function StatCard({ label, value, sub, icon }: { label: string; value: string | number; sub?: string; icon: React.ReactNode }) {
-  return (
-    <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5 flex items-center gap-4" style={{ animation: 'slide_up 0.4s ease-out both' }}>
-      <div className="w-10 h-10 rounded-lg bg-vinyl-surface flex items-center justify-center flex-shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="font-body text-vinyl-muted text-xs">{label}</p>
-        <p className="font-display font-bold text-vinyl-text text-2xl leading-tight">{value}</p>
-        {sub && <p className="font-body text-vinyl-muted/70 text-xs">{sub}</p>}
-      </div>
-    </div>
-  )
-}
-
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) {
+function PieTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-vinyl-card border border-vinyl-border rounded-lg px-3 py-2">
+    <div className="bg-vinyl-card border border-vinyl-border rounded-lg px-3 py-1.5 shadow-xl">
       <p className="font-body text-vinyl-text text-xs">{payload[0].name}: <span className="font-bold text-vinyl-gold">{payload[0].value}</span></p>
     </div>
   )
@@ -53,7 +31,6 @@ export default function StatsPage() {
   const disliked = getDisliked()
   const topGenres = getTopGenres()
   const topArtists = getTopArtists()
-
   const total = ratings.length
   const likedPct = total > 0 ? Math.round((liked.length / total) * 100) : 0
 
@@ -62,7 +39,6 @@ export default function StatsPage() {
     { name: 'Skipped', value: disliked.length },
   ]
 
-  // Build a map of artist name → full artist object from liked ratings
   const artistById: Record<string, SpotifyArtist> = {}
   liked.forEach((r) => { artistById[r.artist.name] = r.artist })
 
@@ -80,10 +56,6 @@ export default function StatsPage() {
     } catch { /* ignore */ } finally {
       setLoadingTracks(false)
     }
-  }
-
-  async function handleTrackClick(trackId: string) {
-    await play(`spotify:track:${trackId}`)
   }
 
   if (total === 0) {
@@ -109,104 +81,143 @@ export default function StatsPage() {
         <p className="font-body text-vinyl-muted text-sm">{total} tracks rated</p>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-8 pb-28 md:pb-10 space-y-6">
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Liked" value={liked.length} sub={`${likedPct}% of rated`} icon={<Heart className="w-5 h-5 text-vinyl-gold" />} />
-          <StatCard label="Skipped" value={disliked.length} sub={`${100 - likedPct}% of rated`} icon={<X className="w-5 h-5 text-vinyl-rose" />} />
-        </div>
+      <div className="max-w-2xl mx-auto px-6 py-8 pb-28 md:pb-12 space-y-5">
 
-        {/* Vibe Ratio pie */}
-        <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5" style={{ animation: 'slide_up 0.5s ease-out both' }}>
-          <h2 className="font-display font-bold text-vinyl-text text-lg mb-4">Vibe Ratio</h2>
-          <div className="flex items-center gap-6">
-            <div className="relative flex-shrink-0">
-              <PieChart width={140} height={140}>
-                <Pie data={pieData} cx={65} cy={65} innerRadius={42} outerRadius={60} paddingAngle={3} dataKey="value" strokeWidth={0}>
+        {/* Row 1 — summary + pie side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Summary stacked */}
+          <div className="flex flex-col gap-4">
+            <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-4 flex items-center gap-3 flex-1">
+              <div className="w-9 h-9 rounded-lg bg-vinyl-gold/10 flex items-center justify-center flex-shrink-0">
+                <Heart className="w-4 h-4 text-vinyl-gold" />
+              </div>
+              <div>
+                <p className="font-body text-vinyl-muted text-xs">Liked</p>
+                <p className="font-display font-bold text-vinyl-text text-2xl leading-tight">{liked.length}</p>
+                <p className="font-body text-vinyl-muted/60 text-xs">{likedPct}% of rated</p>
+              </div>
+            </div>
+            <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-4 flex items-center gap-3 flex-1">
+              <div className="w-9 h-9 rounded-lg bg-vinyl-rose/10 flex items-center justify-center flex-shrink-0">
+                <X className="w-4 h-4 text-vinyl-rose" />
+              </div>
+              <div>
+                <p className="font-body text-vinyl-muted text-xs">Skipped</p>
+                <p className="font-display font-bold text-vinyl-text text-2xl leading-tight">{disliked.length}</p>
+                <p className="font-body text-vinyl-muted/60 text-xs">{100 - likedPct}% of rated</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Vibe ratio donut */}
+          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-4 flex flex-col items-center justify-center">
+            <p className="font-mono text-vinyl-muted text-xs uppercase tracking-widest mb-3">Vibe Ratio</p>
+            <div className="relative">
+              <PieChart width={120} height={120}>
+                <Pie data={pieData} cx={55} cy={55} innerRadius={36} outerRadius={52} paddingAngle={3} dataKey="value" strokeWidth={0}>
                   <Cell fill="#C8A876" />
                   <Cell fill="#E84A6F" />
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<PieTooltip />} />
               </PieChart>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <p className="font-display font-black text-vinyl-gold text-xl leading-none">{likedPct}%</p>
+                  <p className="font-display font-black text-vinyl-gold text-lg leading-none">{likedPct}%</p>
                   <p className="font-body text-vinyl-muted text-xs">liked</p>
                 </div>
               </div>
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-3 mt-2">
               {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: COLORS[i] }} />
-                  <span className="font-body text-vinyl-muted text-sm flex-1">{d.name}</span>
-                  <span className="font-mono text-vinyl-text text-sm">{d.value}</span>
+                <div key={d.name} className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full" style={{ background: i === 0 ? '#C8A876' : '#E84A6F' }} />
+                  <span className="font-body text-vinyl-muted text-xs">{d.name}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Top Genres */}
+        {/* Top Genres — custom bars */}
         {topGenres.length > 0 && (
-          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5" style={{ animation: 'slide_up 0.55s ease-out both' }}>
-            <h2 className="font-display font-bold text-vinyl-text text-lg mb-4">Top Genres</h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={topGenres} layout="vertical" barSize={8}>
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="genre" width={110} tick={{ fill: '#6B7385', fontSize: 11, fontFamily: 'DM Sans' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#1E2538' }} />
-                <Bar dataKey="count" name="Tracks" radius={[0, 4, 4, 0]}>
-                  {topGenres.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5">
+            <p className="font-mono text-vinyl-muted text-xs uppercase tracking-widest mb-4">Top Genres</p>
+            <div className="space-y-3">
+              {topGenres.map((g, i) => (
+                <div key={g.genre} className="flex items-center gap-3">
+                  <span className="font-body text-vinyl-muted text-xs w-4 flex-shrink-0 text-right">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-body text-vinyl-text text-sm truncate capitalize">{g.genre}</span>
+                      <span className="font-mono text-vinyl-muted text-xs ml-2 flex-shrink-0">{g.count}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-vinyl-faint overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${(g.count / topGenres[0].count) * 100}%`,
+                          background: GENRE_COLORS[i % GENRE_COLORS.length],
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Top Artists — clickable */}
+        {/* Top Artists */}
         {topArtists.length > 0 && (
-          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5" style={{ animation: 'slide_up 0.6s ease-out both' }}>
-            <h2 className="font-display font-bold text-vinyl-text text-lg mb-4">Favourite Artists</h2>
+          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5">
+            <p className="font-mono text-vinyl-muted text-xs uppercase tracking-widest mb-4">Favourite Artists</p>
             <div className="space-y-1">
               {topArtists.map((a, i) => (
                 <button
                   key={a.name}
                   onClick={() => handleArtistClick(a.name)}
-                  className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-vinyl-surface transition-colors group"
+                  className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-vinyl-surface transition-colors group"
                 >
-                  <span className="font-mono text-vinyl-muted text-xs w-4 text-right flex-shrink-0">{i + 1}</span>
+                  <span className="font-mono text-vinyl-muted/60 text-xs w-4 text-right flex-shrink-0">{i + 1}</span>
                   {a.image ? (
-                    <img src={a.image} alt={a.name} className="w-8 h-8 rounded-full object-cover border border-vinyl-border flex-shrink-0" />
+                    <img src={a.image} alt={a.name} className="w-9 h-9 rounded-full object-cover border border-vinyl-border flex-shrink-0" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-vinyl-surface flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-vinyl-surface flex items-center justify-center flex-shrink-0 border border-vinyl-border">
                       <Music2 className="w-4 h-4 text-vinyl-muted" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0 text-left">
                     <p className="font-body text-vinyl-text text-sm truncate group-hover:text-vinyl-gold transition-colors">{a.name}</p>
-                    <div className="mt-1 h-1 rounded-full bg-vinyl-faint overflow-hidden">
-                      <div className="h-full rounded-full bg-vinyl-gold transition-all duration-700" style={{ width: `${(a.count / topArtists[0].count) * 100}%` }} />
+                    <div className="mt-1.5 h-1 rounded-full bg-vinyl-faint overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-vinyl-gold/60 group-hover:bg-vinyl-gold transition-all duration-500"
+                        style={{ width: `${(a.count / topArtists[0].count) * 100}%` }}
+                      />
                     </div>
                   </div>
-                  <span className="font-mono text-vinyl-gold text-xs flex-shrink-0">{a.count} {a.count === 1 ? 'track' : 'tracks'}</span>
+                  <span className="font-mono text-vinyl-gold text-xs flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
+                    {a.count} {a.count === 1 ? 'track' : 'tracks'}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Recently Liked — clickable to play */}
+        {/* Recently Liked */}
         {liked.length > 0 && (
-          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5" style={{ animation: 'slide_up 0.65s ease-out both' }}>
-            <h2 className="font-display font-bold text-vinyl-text text-lg mb-4">Recently Liked</h2>
+          <div className="bg-vinyl-card border border-vinyl-border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-mono text-vinyl-muted text-xs uppercase tracking-widest">Recently Liked</p>
+              <span className="font-mono text-vinyl-muted/50 text-xs">{liked.length} tracks</span>
+            </div>
             <div className="space-y-1">
-              {liked.slice(-10).reverse().map((r) => {
+              {liked.slice().reverse().map((r, i) => {
                 const isPlaying = currentTrackId === r.track.id && !isPaused
                 return (
                   <button
-                    key={r.track.id}
-                    onClick={() => handleTrackClick(r.track.id)}
+                    key={r.track.id + i}
+                    onClick={() => play(`spotify:track:${r.track.id}`)}
                     className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-vinyl-surface transition-colors group"
                   >
                     <div className="relative flex-shrink-0">
@@ -227,12 +238,12 @@ export default function StatsPage() {
                     </div>
                     {isPlaying ? (
                       <div className="flex items-end gap-0.5 h-4 flex-shrink-0">
-                        {[0, 150, 75].map((d, i) => (
-                          <div key={i} className="w-0.5 rounded-full bg-vinyl-gold" style={{ height: '4px', animation: `wave 0.8s ease-in-out infinite`, animationDelay: `${d}ms` }} />
+                        {[0, 150, 75].map((d, j) => (
+                          <div key={j} className="w-0.5 rounded-full bg-vinyl-gold" style={{ height: '4px', animation: `wave 0.8s ease-in-out infinite`, animationDelay: `${d}ms` }} />
                         ))}
                       </div>
                     ) : (
-                      <Heart className="w-3.5 h-3.5 text-vinyl-gold flex-shrink-0 opacity-60 group-hover:opacity-0 transition-opacity" />
+                      <Heart className="w-3.5 h-3.5 text-vinyl-gold/40 group-hover:text-vinyl-gold flex-shrink-0 transition-colors" />
                     )}
                   </button>
                 )
