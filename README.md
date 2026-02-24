@@ -6,7 +6,7 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 
 > **LangChain powers the AI Curator:** the agent reads your taste profile, reasons about what artists you'd enjoy, searches Spotify, and returns a personalised swipe feed — all autonomously using LangChain's structured output + OpenAI GPT-4o-mini.
 
----
+
 
 ## Features
 
@@ -18,7 +18,6 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 | **Share** | Export your vibe card as an image |
 | **Mini Player** | Persistent playback bar with skip/prev via Spotify Web Playback SDK |
 
----
 
 ## Architecture
 
@@ -60,7 +59,6 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 └──────────────────┘               └──────────────────────┘
 ```
 
----
 
 ## Tech Stack
 
@@ -77,7 +75,7 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 | **AI Agent** | **LangChain.js** + OpenAI GPT-4o-mini → structured output, artist search, top-track curation |
 | Music API | Spotify Web API |
 
----
+
 
 ## Project Structure
 
@@ -117,7 +115,7 @@ music-bot/
         └── agent.ts            ← LangChain AI curator agent
 ```
 
----
+
 
 ## Setup
 
@@ -166,7 +164,7 @@ npm run dev
 cd server && npm run dev
 ```
 
----
+
 
 ## How the AI Curator Works
 
@@ -187,7 +185,7 @@ cd server && npm run dev
 7. Returns 20 curated tracks → dropped into your swipe feed
 ```
 
----
+
 
 ## Security
 
@@ -198,7 +196,7 @@ cd server && npm run dev
 | Spotify access token | Short-lived, sent only to your local server |
 | `.env` file | In `.gitignore` — never committed or pushed |
 
----
+
 
 ## Branches
 
@@ -208,8 +206,3 @@ cd server && npm run dev
 | `feature/deepagent-curator` | Initial agent scaffold |
 | `feature/functional-agent-langchain` | Working LangChain agent (merged into main) |
 
----
-
-## License
-
-MIT
