@@ -1,4 +1,4 @@
-import { Play, Pause, Music2 } from 'lucide-react'
+import { Play, Pause, Music2, SkipBack, SkipForward } from 'lucide-react'
 import type { SpotifyPlayerHook } from '../hooks/useSpotifyPlayer'
 
 interface MiniPlayerProps {
@@ -22,6 +22,8 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
     durationMs,
     togglePlay,
     seek,
+    previousTrack,
+    nextTrack,
   } = player
 
   // Don't render if nothing is playing
@@ -36,7 +38,7 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:left-56 z-50 bg-vinyl-surface/95 backdrop-blur border-t border-vinyl-border">
+    <div className="fixed bottom-0 left-0 right-0 md:left-56 z-50 bg-vinyl-surface/95 backdrop-blur border-t border-vinyl-border relative">
       {/* Progress bar */}
       <div
         className="h-0.5 bg-vinyl-faint cursor-pointer group"
@@ -64,28 +66,33 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
           </div>
         )}
 
-        {/* Track info */}
+        {/* Track info — left */}
         <div className="flex-1 min-w-0">
           <p className="font-body font-medium text-vinyl-text text-sm truncate">{currentTrackName}</p>
           <p className="font-body text-vinyl-muted text-xs truncate">{currentTrackArtist}</p>
         </div>
 
-        {/* Time */}
-        <span className="font-mono text-vinyl-muted text-xs hidden sm:block flex-shrink-0">
+        {/* Controls — centred absolutely */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <button onClick={previousTrack} className="w-8 h-8 flex items-center justify-center text-vinyl-muted hover:text-vinyl-text transition-colors">
+            <SkipBack className="w-4 h-4" />
+          </button>
+          <button
+            onClick={togglePlay}
+            disabled={!isReady}
+            className="w-10 h-10 rounded-full bg-vinyl-gold flex items-center justify-center text-vinyl-bg hover:bg-vinyl-amber transition-all disabled:opacity-50"
+          >
+            {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
+          </button>
+          <button onClick={nextTrack} className="w-8 h-8 flex items-center justify-center text-vinyl-muted hover:text-vinyl-text transition-colors">
+            <SkipForward className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Time — right */}
+        <span className="font-mono text-vinyl-muted text-xs hidden sm:block flex-shrink-0 ml-auto">
           {formatMs(positionMs)} / {formatMs(durationMs)}
         </span>
-
-        {/* Play/Pause */}
-        <button
-          onClick={togglePlay}
-          disabled={!isReady}
-          className="w-9 h-9 rounded-full bg-vinyl-gold flex items-center justify-center text-vinyl-bg hover:bg-vinyl-amber transition-all flex-shrink-0 disabled:opacity-50"
-        >
-          {isPaused
-            ? <Play className="w-4 h-4 ml-0.5" />
-            : <Pause className="w-4 h-4" />
-          }
-        </button>
       </div>
     </div>
   )

@@ -30,6 +30,19 @@ export async function searchArtists(
   return data.artists.items
 }
 
+export async function searchTracks(
+  query: string,
+  token: string,
+  limit = 5
+): Promise<SpotifyTrack[]> {
+  const data = await spotifyFetch<SpotifySearchResult>("/search", token, {
+    q: query,
+    type: "track",
+    limit: String(limit),
+  })
+  return data.tracks?.items ?? []
+}
+
 export async function getArtistTopTracks(
   artistId: string,
   token: string,

@@ -36,6 +36,10 @@ export interface SpotifySearchResult {
     items: SpotifyArtist[]
     total: number
   }
+  tracks?: {
+    items: SpotifyTrack[]
+    total: number
+  }
 }
 
 export type ReactionType = 'like' | 'dislike'

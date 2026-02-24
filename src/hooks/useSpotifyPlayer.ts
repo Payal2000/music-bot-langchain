@@ -17,33 +17,14 @@ export interface SpotifyPlayerHook extends PlayerState {
   play: (spotifyUri: string) => Promise<void>
   togglePlay: () => void
   seek: (ms: number) => void
+  previousTrack: () => void
+  nextTrack: () => void
 }
 
-declare global {
-  interface Window {
-    onSpotifyWebPlaybackSDKReady: () => void
-    Spotify: {
-      Player: new (config: {
-        name: string
-        getOAuthToken: (cb: (token: string) => void) => void
-        volume: number
-      }) => SpotifyPlayer
-    }
-  }
-}
-
-interface SpotifyPlayer {
-  connect: () => Promise<boolean>
-  disconnect: () => void
-  togglePlay: () => Promise<void>
-  seek: (ms: number) => Promise<void>
-  addListener: (event: string, cb: (data: unknown) => void) => void
-  removeListener: (event: string) => void
-}
 
 export function useSpotifyPlayer(): SpotifyPlayerHook {
   const { getValidToken } = useAuthStore()
-  const playerRef = useRef<SpotifyPlayer | null>(null)
+  const playerRef = useRef<Spotify.Player | null>(null)
   const [state, setState] = useState<PlayerState>({
     deviceId: null,
     isReady: false,
@@ -157,5 +138,13 @@ export function useSpotifyPlayer(): SpotifyPlayerHook {
     playerRef.current?.seek(ms)
   }
 
-  return { ...state, play, togglePlay, seek }
+  function previousTrack() {
+    playerRef.current?.previousTrack()
+  }
+
+  function nextTrack() {
+    playerRef.current?.nextTrack()
+  }
+
+  return { ...state, play, togglePlay, seek, previousTrack, nextTrack }
 }
