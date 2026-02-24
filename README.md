@@ -2,13 +2,13 @@
 
 A music taste discovery app powered by Spotify + an AI curation agent built with LangChain and OpenAI.
 
----
+
 
 ## What It Does
 
 MyVibe lets you swipe through tracks, rate them, and build a personal taste profile. The AI Curator agent then discovers new music you're likely to love — based on your liked tracks, top genres, and favourite artists.
 
----
+
 
 ## Architecture
 
@@ -49,7 +49,7 @@ MyVibe lets you swipe through tracks, rate them, and build a personal taste prof
 └─────────────────┘          └─────────────────────┘
 ```
 
----
+
 
 ## Tech Stack
 
@@ -75,7 +75,7 @@ MyVibe lets you swipe through tracks, rate them, and build a personal taste prof
 - **Share** — Export your vibe card as an image
 - **Mini Player** — Persistent playback bar with skip/prev controls
 
----
+
 
 ## Project Structure
 
@@ -110,7 +110,7 @@ music-bot/
         └── agent.ts            # LangChain curator agent
 ```
 
----
+
 
 ## Setup
 
@@ -136,7 +136,7 @@ VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-> ⚠️ **Never commit `.env` to git.** It is already in `.gitignore`.
+
 
 ### 4. Install & Run
 
@@ -154,10 +154,6 @@ npm run dev
 cd server && npm run dev
 ```
 
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173)
-
----
-
 ## Key Security Notes
 
 - **`OPENAI_API_KEY`** — server-side only, never exposed to the browser
@@ -166,7 +162,7 @@ Open [http://127.0.0.1:5173](http://127.0.0.1:5173)
 - **`.env`** — excluded from git via `.gitignore`
 - **`.env.example`** — committed with placeholder values only
 
----
+
 
 ## Agent Flow (AI Curator)
 
@@ -193,7 +189,7 @@ Filters already-rated tracks → sorts by popularity → returns top 20
 React drops curated tracks into existing swipe feed
 ```
 
----
+
 
 ## Branches
 
@@ -202,8 +198,6 @@ React drops curated tracks into existing swipe feed
 | `main` | Stable base |
 | `feature/deepagent-curator` | Initial agent scaffold |
 | `feature/functional-agent-langchain` | **Working LangChain agent** (current) |
-
----
 
 ## License
 
