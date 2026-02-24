@@ -7,6 +7,7 @@ import CallbackPage from './pages/CallbackPage'
 import SearchPage from './pages/SearchPage'
 import StatsPage from './pages/StatsPage'
 import SharePage from './pages/SharePage'
+import CuratePage from './pages/CuratePage'
 import Navbar from './components/Navbar'
 import MiniPlayer from './components/MiniPlayer'
 
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/search" element={<ProtectedLayout><SearchPage /></ProtectedLayout>} />
       <Route path="/stats" element={<ProtectedLayout><StatsPage /></ProtectedLayout>} />
       <Route path="/share" element={<ProtectedLayout><SharePage /></ProtectedLayout>} />
+      <Route path="/curate" element={<ProtectedLayout><CuratePage /></ProtectedLayout>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

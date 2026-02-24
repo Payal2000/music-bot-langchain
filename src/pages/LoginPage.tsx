@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { generateCodeVerifier, generateCodeChallenge, getSpotifyAuthUrl } from '../lib/pkce'
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID as string
-const REDIRECT_URI = 'http://localhost:5173/callback'
+const REDIRECT_URI = 'http://127.0.0.1:5173/callback'
 
 // Animated vinyl record SVG
 function VinylRecord({ className = '' }: { className?: string }) {

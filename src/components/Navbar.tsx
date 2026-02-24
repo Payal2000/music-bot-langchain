@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Search, BarChart2, Share2, LogOut } from 'lucide-react'
+import { Search, BarChart2, Share2, LogOut, Sparkles } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
 import { useVibeStore } from '../store/useVibeStore'
 import clsx from 'clsx'
@@ -17,6 +17,7 @@ export default function Navbar() {
 
   const links = [
     { to: '/search', icon: Search, label: 'Explore' },
+    { to: '/curate', icon: Sparkles, label: 'Curate' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/share', icon: Share2, label: 'Share' },
   ]

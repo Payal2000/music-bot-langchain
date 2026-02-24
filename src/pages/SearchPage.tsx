@@ -2,7 +2,6 @@ import { Music2 } from 'lucide-react'
 import ArtistSearch from '../components/ArtistSearch'
 import TrackCard from '../components/TrackCard'
 import { useVibeStore } from '../store/useVibeStore'
-import { usePlayer } from '../context/PlayerContext'
 
 export default function SearchPage() {
   const {
@@ -15,7 +14,6 @@ export default function SearchPage() {
     undoLast,
     ratings,
   } = useVibeStore()
-  const player = usePlayer()
 
   const track = currentTracks[currentTrackIndex]
   const isDone = currentArtist && currentTrackIndex >= currentTracks.length && currentTracks.length > 0
@@ -26,18 +24,9 @@ export default function SearchPage() {
       {/* Header */}
       <div className="sticky top-0 z-30 bg-vinyl-bg/90 backdrop-blur border-b border-vinyl-border px-6 py-4">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="font-display font-black text-vinyl-text text-2xl">Explore</h1>
-            {/* Player status badge */}
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono border ${
-              player.isReady
-                ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                : 'border-vinyl-border bg-vinyl-card text-vinyl-muted'
-            }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${player.isReady ? 'bg-green-400 animate-pulse' : 'bg-vinyl-muted'}`} />
-              {player.isReady ? 'Player ready' : 'Player connecting…'}
-            </div>
-          </div>
+          <h1 className="font-display font-black text-vinyl-text text-2xl mb-3">
+            Explore
+          </h1>
           <ArtistSearch />
         </div>
       </div>
