@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, X, Users, Music2 } from 'lucide-react'
-import { searchArtists, searchTracks, getArtistTopTracks, formatFollowers, formatDuration } from '../lib/spotify'
+import { searchArtists, searchTracks, getArtistTopTracks, getArtist, formatFollowers, formatDuration } from '../lib/spotify'
 import { useAuthStore } from '../store/useAuthStore'
 import { useVibeStore } from '../store/useVibeStore'
 import { usePlayer } from '../context/PlayerContext'
@@ -71,7 +71,15 @@ export default function ArtistSearch() {
 
   async function selectTrack(track: SpotifyTrack) {
     closeDropdown()
-    await play(`spotify:track:${track.id}`)
+    play(`spotify:track:${track.id}`)
+    // Load the track card + artist in the background
+    try {
+      const token = await getValidToken()
+      if (!token) return
+      const artist = await getArtist(track.artists[0].id, token)
+      setCurrentArtist(artist)
+      setCurrentTracks([track])
+    } catch { /* ignore */ }
   }
 
   const hasResults = artists.length > 0 || tracks.length > 0

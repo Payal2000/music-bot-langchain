@@ -38,7 +38,7 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:left-56 z-50 bg-vinyl-surface/95 backdrop-blur border-t border-vinyl-border relative">
+    <div className="fixed bottom-0 left-0 right-0 md:left-56 z-50 bg-vinyl-surface/95 backdrop-blur border-t border-vinyl-border">
       {/* Progress bar */}
       <div
         className="h-0.5 bg-vinyl-faint cursor-pointer group"
@@ -52,35 +52,31 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 px-4 py-3">
-        {/* Album art */}
-        {currentTrackImage ? (
-          <img
-            src={currentTrackImage}
-            alt=""
-            className="w-10 h-10 rounded-lg object-cover border border-vinyl-border flex-shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-vinyl-card border border-vinyl-border flex items-center justify-center flex-shrink-0">
-            <Music2 className="w-4 h-4 text-vinyl-muted" />
+      <div className="grid grid-cols-3 items-center px-3 py-2.5 gap-2">
+        {/* Left — album art + track info */}
+        <div className="flex items-center gap-2 min-w-0">
+          {currentTrackImage ? (
+            <img src={currentTrackImage} alt="" className="w-9 h-9 rounded-lg object-cover border border-vinyl-border flex-shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-lg bg-vinyl-card border border-vinyl-border flex items-center justify-center flex-shrink-0">
+              <Music2 className="w-4 h-4 text-vinyl-muted" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-body font-medium text-vinyl-text text-xs truncate">{currentTrackName}</p>
+            <p className="font-body text-vinyl-muted text-xs truncate">{currentTrackArtist}</p>
           </div>
-        )}
-
-        {/* Track info — left */}
-        <div className="flex-1 min-w-0">
-          <p className="font-body font-medium text-vinyl-text text-sm truncate">{currentTrackName}</p>
-          <p className="font-body text-vinyl-muted text-xs truncate">{currentTrackArtist}</p>
         </div>
 
-        {/* Controls — centred absolutely */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+        {/* Centre — controls */}
+        <div className="flex items-center justify-center gap-1">
           <button onClick={previousTrack} className="w-8 h-8 flex items-center justify-center text-vinyl-muted hover:text-vinyl-text transition-colors">
             <SkipBack className="w-4 h-4" />
           </button>
           <button
             onClick={togglePlay}
             disabled={!isReady}
-            className="w-10 h-10 rounded-full bg-vinyl-gold flex items-center justify-center text-vinyl-bg hover:bg-vinyl-amber transition-all disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-vinyl-gold flex items-center justify-center text-vinyl-bg hover:bg-vinyl-amber transition-all disabled:opacity-50"
           >
             {isPaused ? <Play className="w-4 h-4 ml-0.5" /> : <Pause className="w-4 h-4" />}
           </button>
@@ -89,10 +85,12 @@ export default function MiniPlayer({ player }: MiniPlayerProps) {
           </button>
         </div>
 
-        {/* Time — right */}
-        <span className="font-mono text-vinyl-muted text-xs hidden sm:block flex-shrink-0 ml-auto">
-          {formatMs(positionMs)} / {formatMs(durationMs)}
-        </span>
+        {/* Right — time */}
+        <div className="flex justify-end">
+          <span className="font-mono text-vinyl-muted text-xs hidden sm:block">
+            {formatMs(positionMs)} / {formatMs(durationMs)}
+          </span>
+        </div>
       </div>
     </div>
   )
