@@ -2,7 +2,9 @@
 
 > Discover your music taste. Let AI curate what's next.
 
-MyVibe is a full-stack music app that lets you swipe through tracks, build a personal taste profile, and get AI-curated recommendations — powered by Spotify and an LLM agent built with LangChain + OpenAI.
+MyVibe is a full-stack music app that lets you swipe through tracks, build a personal taste profile, and get AI-curated recommendations — powered by Spotify and a **LangChain agent** backed by OpenAI.
+
+> **LangChain powers the AI Curator:** the agent reads your taste profile, reasons about what artists you'd enjoy, searches Spotify, and returns a personalised swipe feed — all autonomously using LangChain's structured output + OpenAI GPT-4o-mini.
 
 ---
 
@@ -11,7 +13,7 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 | Feature | Description |
 |---|---|
 | **Explore** | Search any artist or song, swipe to like or skip |
-| **AI Curator** | LangChain agent discovers new artists based on your taste |
+| **⚡ AI Curator** | **LangChain agent** (GPT-4o-mini) discovers new artists based on your taste — server-side, keys never exposed |
 | **Stats** | Visual breakdown of top genres, artists, and liked tracks |
 | **Share** | Export your vibe card as an image |
 | **Mini Player** | Persistent playback bar with skip/prev via Spotify Web Playback SDK |
@@ -72,7 +74,7 @@ MyVibe is a full-stack music app that lets you swipe through tracks, build a per
 | Player | Spotify Web Playback SDK |
 | Auth | Spotify PKCE OAuth (no backend secret needed) |
 | Backend | Node.js + Express |
-| AI Agent | LangChain.js + OpenAI GPT-4o-mini |
+| **AI Agent** | **LangChain.js** + OpenAI GPT-4o-mini → structured output, artist search, top-track curation |
 | Music API | Spotify Web API |
 
 ---
